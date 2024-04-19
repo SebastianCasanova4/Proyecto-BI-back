@@ -32,14 +32,12 @@ def read_item(file: UploadFile = File(...)):
     finally:
        file.file.close()
     # procesar todo
-    df_og = pd.read_csv("training.csv")
     model = load("assets/model.joblib")
     df = pd.read_csv("file.csv")
-    X_train, X_test, y_train, y_test = train_test_split(df_og[["Review"]], df_og["Class"], test_size=0.3, stratify=df_og["Class"], random_state=1)
+    y_test = df["Class"]
     result = model.best_estimator_.predict(df["Review"])
-    y_test, result = cortar(y_test, result)
-    df['Class'] = result
-    df.to_csv("file_predicted.csv")
+    df['ClassPrediction'] = result
+    df.to_csv("file_predicted.csv", index=False)
     ps = precision_score(y_test, result, average="weighted")
     rs = recall_score(y_test, result, average="weighted")
     f1 = f1_score(y_test, result, average="weighted")
@@ -48,10 +46,3 @@ def read_item(file: UploadFile = File(...)):
 @app.get("/download")
 def download_file():
     return FileResponse(path ="file_predicted.csv", media_type="text/csv")
-
-
-def cortar(arr1, arr2):
-    min_length = min(len(arr1), len(arr2))
-    truncated_arr1 = arr1[:min_length]
-    truncated_arr2 = arr2[:min_length]
-    return truncated_arr1, truncated_arr2
